@@ -1,0 +1,8 @@
+**
+
+!web_framework
+!web_server
+
+**/__pycache__
+**/Pipfile*
+**/Dockerfile
