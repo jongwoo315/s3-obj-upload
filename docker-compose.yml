@@ -1,0 +1,49 @@
+version: '2'
+
+services:
+  web_server:
+    build:
+      context: ./web_server
+      dockerfile: Dockerfile
+    ports:
+      - 80:80
+    # command: command
+    image: ${AWS_PROFILE_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPO_WEB_SERVICE}:latest
+    volumes:
+      - type: volume
+        source: web_server_vol
+        target: /www/static
+    volumes_from:
+      - web_framework
+    depends_on:
+      - web_framework 
+    restart: always
+  web_framework:
+    build:
+      context: ./web_framework 
+      dockerfile: Dockerfile 
+    expose:
+      - 8000
+    command: gunicorn -w 2 -b 0.0.0.0:8000 web_framework:app  # Dockerfile에서 지정한 WORKDIR이 /src, 로컬 소스를 /src/web_framework로 이동했음
+    image: ${AWS_PROFILE_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPO_WEB_FRAMEWORK}:latest
+    volumes:
+      - type: volume
+        source: flask_vol
+        target: /home/flask/app/web
+      # docker cli에서 -v 옵션 추가
+      - type: bind
+        source: $PWD/.env
+        target: /.env
+      - type: bind
+        source: ~/.aws
+        target: /root/.aws
+    restart: always
+
+volumes:
+  web_server_vol:
+  flask_vol:
+
+# x-aws-cloudformation:
+#   Resources:
+#     Type:
+#     Properties:

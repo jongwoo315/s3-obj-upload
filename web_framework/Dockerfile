@@ -2,7 +2,11 @@ FROM python:3.9-slim
 
 WORKDIR /src
 
-COPY /web_framework /src/web_framework/
+# localhost 테스트
+# COPY /web_framework /src/web_framework/
+
+# docker-compose build시 해당 Dockerfile이 root dir
+COPY . /src/web_framework/
 
 RUN pip install -r web_framework/requirements.txt 
 
