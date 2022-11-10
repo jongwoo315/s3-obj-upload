@@ -24,25 +24,38 @@ services:
       dockerfile: Dockerfile 
     expose:
       - 8000
+    ### aws ecs 배포시에 아래와 같은 방식으로 .env 사용
+    ### aws console > ecs > task definition > container defintions에서 .env설정 확인
+    env_file:
+      - .env
+    # secrets:
+    #   - source: aws_creds
+    #     target: ~/.aws/credentials
+
     command: gunicorn -w 2 -b 0.0.0.0:8000 web_framework:app  # Dockerfile에서 지정한 WORKDIR이 /src, 로컬 소스를 /src/web_framework로 이동했음
     image: ${AWS_PROFILE_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPO_WEB_FRAMEWORK}:latest
     volumes:
       - type: volume
         source: flask_vol
         target: /home/flask/app/web
-      # docker cli에서 -v 옵션 추가
-      - type: bind
-        source: $PWD/.env
-        target: /.env
-      - type: bind
-        source: ~/.aws
-        target: /root/.aws
+      ### docker cli -v 옵션
+      ### aws ecs 배포시에는 bind 사용 불가능 (로컬 docker-compose 테스트에만 사용)
+      ### ECS Fargate does not support bind mounts from host: incompatible attribute
+      ### .env -> env_file key 사용
+      # - type: bind
+      #   source: $PWD/.env
+      #   target: /.env
+      ### aws 환경에서 사용하지 않음 
+      # - type: bind
+      #   source: ~/.aws
+      #   target: /root/.aws
     restart: always
 
 volumes:
   web_server_vol:
   flask_vol:
 
+### ecs 환경 커스텀이 필요한 경우 사용
 # x-aws-cloudformation:
 #   Resources:
 #     Type:
